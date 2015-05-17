@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.github.thiagolocatelli:parse4j:1.4">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.thiagolocatelli/parse4j/1.4/9f47ecd0884e79c64c032c9c9641bf96f399925c/parse4j-1.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.thiagolocatelli/parse4j/1.4/2c0062feae51924a8f0a816cd54c1c9380039a34/parse4j-1.4-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

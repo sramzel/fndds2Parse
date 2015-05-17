@@ -1,0 +1,10 @@
+~Main Food Descriptions~^6940^
+~Additional Food Descriptions~^6600^
+~Food Portion Descriptions~^4387^
+~Food Weights~^29102^
+~Subcode Descriptions~^262^
+~Food Code-Subcode Links~^318^
+~FNDDS Nutrient Values~^437220^
+~Nutrient Descriptions~^63^
+~Moisture & Fat Adjustments~^6940^
+~FNDDS-SR Links~^27908^
