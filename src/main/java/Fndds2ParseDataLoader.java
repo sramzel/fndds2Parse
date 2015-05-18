@@ -29,80 +29,33 @@ public class Fndds2ParseDataLoader {
             "AddFoodDesc"
     };
 
-    enum TypeFactory {
-        string {
-            @Override
-            Object next(Scanner scanner) {
-                return scanner.next();
-            }
-        },
-        integer {
-            @Override
-            Object next(Scanner scanner) {
-                return scanner.nextLong();
-            }
-        },
-        fraction {
-            @Override
-            Object next(Scanner scanner) {
-                return scanner.nextFloat();
-            }
-        },
-        date {
-            @Override
-            Object next(Scanner scanner) {
-                return scanner.next();
-            }
-        };
-
-        abstract Object next(Scanner scanner);
-    }
-
     public static void main(String[] args) {
         Logger logger = initLogger();
 
         Parse.initialize(APPLICATION_ID, REST_API_KEY);
         logger.info("Parse Initialized");
 
-        for (String className : CLASS_NAMES) {
-            try {
-                Scanner scanner = getScanner(new FileReader("./assets/" + className + ".txt"), 0L);
-                logger.info("File loaded");
-                ArrayList<Key> keyList = new ArrayList<>();
-                Scanner fieldScanner = new Scanner(scanner.nextLine());
-                fieldScanner.useDelimiter("~?\\^~?");
-                while (fieldScanner.hasNext()) {
-                    String next = fieldScanner.next();
-                    String[] split = next.split(":");
-                    Key key = new Key(split[0], split[1]);
-                    keyList.add(key);
-                    logger.info("Added Field " + next);
-                }
-                int count = ParseQuery.getQuery(className).count();
-                for (int i = 0; i < count; i++) scanner.nextLine();
-                int n = count;
-                ParseBatch batcher = new ParseBatch();
-                while (scanner.hasNextLine()) {
-                    ParseObject parseObject = new ParseObject(className);
-                    for (Key key : keyList) {
-                        Object next = key.next(scanner);
-                        if (!TypeFactory.date.equals(key.mType)) {
-                            parseObject.put(key.mKey, next);
-                        }
-                    }
-                    batcher.createObject(parseObject);
-                    scanner.nextLine();
-                    if (++n%50 == 0) {
-                        logger.info("Added entry " + n);
-                        batcher.batch();
-                        batcher = new ParseBatch();
+        boolean shouldRetry = true;
+        while (shouldRetry) {
+            for (int loadingClassId = 0; loadingClassId < CLASS_NAMES.length; loadingClassId++) {
+                String className = CLASS_NAMES[loadingClassId];
+                shouldRetry = false;
+                try {
+                    uploadClass(logger, className);
+                } catch (IOException e) {
+                    logger.error(e);
+                } catch (ParseException e) {
+                    logger.error(e);
+                    if (e.getCode() == 155) {
+                        new WaitRunnable(logger).run();
+                        shouldRetry = true;
+                        loadingClassId--;
                     }
                 }
-            } catch (IOException | ParseException e) {
-                e.printStackTrace();
-                logger.error(e);
+                logger.info("Loaded all " + className + " entries");
             }
         }
+        logger.info("Finished");
     }
 
     private static Logger initLogger() {
@@ -127,18 +80,116 @@ public class Fndds2ParseDataLoader {
         return scanner;
     }
 
+    private static ArrayList<Key> loadClassKeys(Scanner scanner) {
+        ArrayList<Key> keyList = new ArrayList<>();
+        Scanner fieldScanner = new Scanner(scanner.nextLine());
+        fieldScanner.useDelimiter("~?\\^~?");
+        while (fieldScanner.hasNext()) {
+            String next = fieldScanner.next();
+            String[] split = next.split(":");
+            Key key = new Key(split[0], split[1]);
+            keyList.add(key);
+        }
+        return keyList;
+    }
+
+    private static void uploadClass(Logger logger, String className) throws IOException, ParseException {
+        logger.info("Loading " + className + " class");
+        Scanner scanner = getScanner(new FileReader("./assets/" + className + ".txt"), 0L);
+        ArrayList<Key> keyList = loadClassKeys(scanner);
+        logger.info(className + " file loaded");
+
+        int count = ParseQuery.getQuery(className).count();
+        for (int i = 0; i < count; i++) scanner.nextLine();
+        logger.info("Started at line " + count);
+
+        logger.info("Uploading...");
+        ParseBatch batch = new ParseBatch();
+        while (scanner.hasNextLine()) {
+            ParseObject parseObject = new ParseObject(className);
+            for (Key key : keyList) {
+                Object next = key.next(scanner);
+                if (!Key.Type.date.equals(key.mType)) {
+                    parseObject.put(key.mKey, next);
+                }
+            }
+            batch.createObject(parseObject);
+            scanner.nextLine();
+            if (++count % 50 == 0) {
+                batch.batch();
+                batch = new ParseBatch();
+                logger.info("Added entry " + count);
+            }
+        }
+        batch.batch();
+        logger.info("Added entry " + count);
+    }
+
     private static class Key {
 
-        private final TypeFactory mType;
-        private final String mKey;
+        private final Type mType;
 
+        private final String mKey;
         public Key(String key, String type) {
             mKey = key;
-            mType = TypeFactory.valueOf(type);
+            mType = Type.valueOf(type);
         }
 
         Object next(Scanner scanner) {
             return mType.next(scanner);
+        }
+
+        public enum Type {
+            string {
+                @Override
+                Object next(Scanner scanner) {
+                    return scanner.next();
+                }
+            },
+            integer {
+                @Override
+                Object next(Scanner scanner) {
+                    return scanner.nextLong();
+                }
+            },
+            fraction {
+                @Override
+                Object next(Scanner scanner) {
+                    return scanner.nextFloat();
+                }
+            },
+            date {
+                @Override
+                Object next(Scanner scanner) {
+                    return scanner.next();
+                }
+            };
+
+            abstract Object next(Scanner scanner);
+        }
+    }
+
+    private static class WaitRunnable implements Runnable {
+
+        private Logger logger;
+
+        private WaitRunnable(Logger logger) {
+            this.logger = logger;
+        }
+
+        @Override
+        public void run() {
+            long waitMs = 60000;
+            synchronized (this) {
+                while (waitMs > 1000) {
+                    try {
+                        logger.info("Waiting " + waitMs / 1000 + " seconds...");
+                        wait(waitMs /= 2L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 }
