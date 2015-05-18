@@ -20,8 +20,6 @@ import java.util.Scanner;
  */
 public class Fndds2ParseDataLoader {
 
-    public static final String APPLICATION_ID = "5V6uI4uhzAzzKc4NMIHfyHVjqi6FFBW6eyi3Yy8o";
-    public static final String REST_API_KEY = "djPEF0DiqgFz2JqerokYTjX4DuN5e2knm2Rjo8Vv";
     public static final String PATTERN = "%d{dd-MM-yyyy HH:mm:ss} %C %L %-5p:%m%n";
     public static final String FILE_LOG = "file.log";
     public static final String[] CLASS_NAMES = new String[]{
@@ -32,7 +30,7 @@ public class Fndds2ParseDataLoader {
     public static void main(String[] args) {
         Logger logger = initLogger();
 
-        Parse.initialize(APPLICATION_ID, REST_API_KEY);
+        Parse.initialize(PrivateKeys.APPLICATION_ID, PrivateKeys.REST_API_KEY);
         logger.info("Parse Initialized");
 
         boolean shouldRetry = true;
@@ -62,7 +60,7 @@ public class Fndds2ParseDataLoader {
         Logger logger = Logger.getLogger(Fndds2ParseDataLoader.class.getSimpleName());
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
-        FileAppender fileAppender = null;
+        FileAppender fileAppender;
         try {
             PatternLayout layout = new PatternLayout(PATTERN);
             fileAppender = new RollingFileAppender(layout, FILE_LOG);
@@ -73,30 +71,24 @@ public class Fndds2ParseDataLoader {
         return logger;
     }
 
-    public static Scanner getScanner(FileReader sce, Long skipLines) throws IOException {
-        Scanner scanner = new Scanner(sce);
-        for (long n = 0L; n < skipLines; n++) scanner.nextLine();
-        scanner.useDelimiter("~?\\^~?");
-        return scanner;
-    }
-
-    private static ArrayList<Key> loadClassKeys(Scanner scanner) {
-        ArrayList<Key> keyList = new ArrayList<>();
+    private static ArrayList<Field> loadClassKeys(Scanner scanner) {
+        ArrayList<Field> fieldList = new ArrayList<>();
         Scanner fieldScanner = new Scanner(scanner.nextLine());
         fieldScanner.useDelimiter("~?\\^~?");
         while (fieldScanner.hasNext()) {
             String next = fieldScanner.next();
             String[] split = next.split(":");
-            Key key = new Key(split[0], split[1]);
-            keyList.add(key);
+            Field field = new Field(split[0], split[1]);
+            fieldList.add(field);
         }
-        return keyList;
+        return fieldList;
     }
 
     private static void uploadClass(Logger logger, String className) throws IOException, ParseException {
         logger.info("Loading " + className + " class");
-        Scanner scanner = getScanner(new FileReader("./assets/" + className + ".txt"), 0L);
-        ArrayList<Key> keyList = loadClassKeys(scanner);
+        Scanner scanner = new Scanner(new FileReader("./assets/" + className + ".txt"));
+        scanner.useDelimiter("~?\\^~?");
+        ArrayList<Field> fieldList = loadClassKeys(scanner);
         logger.info(className + " file loaded");
 
         int count = ParseQuery.getQuery(className).count();
@@ -104,13 +96,17 @@ public class Fndds2ParseDataLoader {
         logger.info("Started at line " + count);
 
         logger.info("Uploading...");
+        uploadClass(logger, className, scanner, fieldList, count);
+    }
+
+    private static void uploadClass(Logger logger, String className, Scanner scanner, ArrayList<Field> fieldList, int count) throws ParseException {
         ParseBatch batch = new ParseBatch();
         while (scanner.hasNextLine()) {
             ParseObject parseObject = new ParseObject(className);
-            for (Key key : keyList) {
-                Object next = key.next(scanner);
-                if (!Key.Type.date.equals(key.mType)) {
-                    parseObject.put(key.mKey, next);
+            for (Field field : fieldList) {
+                Object next = field.next(scanner);
+                if (!Field.Type.date.equals(field.mType)) {
+                    parseObject.put(field.mKey, next);
                 }
             }
             batch.createObject(parseObject);
@@ -125,12 +121,12 @@ public class Fndds2ParseDataLoader {
         logger.info("Added entry " + count);
     }
 
-    private static class Key {
+    private static class Field {
 
         private final Type mType;
 
         private final String mKey;
-        public Key(String key, String type) {
+        public Field(String key, String type) {
             mKey = key;
             mType = Type.valueOf(type);
         }
@@ -171,6 +167,8 @@ public class Fndds2ParseDataLoader {
 
     private static class WaitRunnable implements Runnable {
 
+        public static final int WAIT_TIME_MS = 60000;
+        public static final int ONE_SECOND = 1000;
         private Logger logger;
 
         private WaitRunnable(Logger logger) {
@@ -179,11 +177,11 @@ public class Fndds2ParseDataLoader {
 
         @Override
         public void run() {
-            long waitMs = 60000;
+            long waitMs = WAIT_TIME_MS;
             synchronized (this) {
-                while (waitMs > 1000) {
+                while (waitMs > ONE_SECOND) {
                     try {
-                        logger.info("Waiting " + waitMs / 1000 + " seconds...");
+                        logger.info("Waiting " + waitMs / ONE_SECOND + " seconds...");
                         wait(waitMs /= 2L);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
