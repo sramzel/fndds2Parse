@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/fndds2JsonParser.iml" filepath="$PROJECT_DIR$/fndds2JsonParser.iml" />
-      <module fileurl="file://$PROJECT_DIR$/javaParser/javaParser.iml" filepath="$PROJECT_DIR$/javaParser/javaParser.iml" />
       <module fileurl="file://$PROJECT_DIR$/../parse4j/parse4j.iml" filepath="$PROJECT_DIR$/../parse4j/parse4j.iml" />
     </modules>
   </component>

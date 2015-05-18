@@ -22949,3 +22949,17 @@
 17-05-2015 21:22:25 Fndds2ParseDataLoader 125 INFO :Added entry 6600
 17-05-2015 21:22:25 Fndds2ParseDataLoader 55 INFO :Loaded all AddFoodDesc entries
 17-05-2015 21:22:25 Fndds2ParseDataLoader 58 INFO :Finished
+18-05-2015 10:28:33 Fndds2ParseDataLoader 36 INFO :Parse Initialized
+18-05-2015 10:28:33 Fndds2ParseDataLoader 97 INFO :Loading MainFoodDesc class
+18-05-2015 10:28:33 Fndds2ParseDataLoader 100 INFO :MainFoodDesc file loaded
+18-05-2015 10:28:36 Fndds2ParseDataLoader 104 INFO :Started at line 6940
+18-05-2015 10:28:36 Fndds2ParseDataLoader 106 INFO :Uploading...
+18-05-2015 10:28:37 Fndds2ParseDataLoader 125 INFO :Added entry 6940
+18-05-2015 10:28:37 Fndds2ParseDataLoader 55 INFO :Loaded all MainFoodDesc entries
+18-05-2015 10:28:37 Fndds2ParseDataLoader 97 INFO :Loading AddFoodDesc class
+18-05-2015 10:28:37 Fndds2ParseDataLoader 100 INFO :AddFoodDesc file loaded
+18-05-2015 10:28:38 Fndds2ParseDataLoader 104 INFO :Started at line 6600
+18-05-2015 10:28:38 Fndds2ParseDataLoader 106 INFO :Uploading...
+18-05-2015 10:28:38 Fndds2ParseDataLoader 125 INFO :Added entry 6600
+18-05-2015 10:28:38 Fndds2ParseDataLoader 55 INFO :Loaded all AddFoodDesc entries
+18-05-2015 10:28:38 Fndds2ParseDataLoader 58 INFO :Finished
