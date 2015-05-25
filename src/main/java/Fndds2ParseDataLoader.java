@@ -1,9 +1,4 @@
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.RollingFileAppender;
 import org.parse4j.Parse;
 import org.parse4j.ParseBatch;
 import org.parse4j.ParseException;
@@ -24,11 +19,19 @@ public class Fndds2ParseDataLoader {
     public static final String FILE_LOG = "file.log";
     public static final String[] CLASS_NAMES = new String[]{
             "MainFoodDesc",
-            "AddFoodDesc"
+            "AddFoodDesc",
+            "FoodWeights",
+            "FoodPortionDesc",
+            "SubCodeDesc",
+            "FoodCodeSubcodeLink",
+            "NutrientValues",
+            "NutrientDesc",
+            "MoistureFatAdj",
+            "DailyValue"
     };
 
     public static void main(String[] args) {
-        Logger logger = initLogger();
+        Logger logger = Utils.initLogger();
 
         Parse.initialize(PrivateKeys.APPLICATION_ID, PrivateKeys.REST_API_KEY);
         logger.info("Parse Initialized");
@@ -45,7 +48,7 @@ public class Fndds2ParseDataLoader {
                 } catch (ParseException e) {
                     logger.error(e);
                     if (e.getCode() == 155) {
-                        new WaitRunnable(logger).run();
+                        new Utils.WaitRunnable(logger).run();
                         shouldRetry = true;
                         loadingClassId--;
                     }
@@ -54,21 +57,6 @@ public class Fndds2ParseDataLoader {
             }
         }
         logger.info("Finished");
-    }
-
-    private static Logger initLogger() {
-        Logger logger = Logger.getLogger(Fndds2ParseDataLoader.class.getSimpleName());
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.INFO);
-        FileAppender fileAppender;
-        try {
-            PatternLayout layout = new PatternLayout(PATTERN);
-            fileAppender = new RollingFileAppender(layout, FILE_LOG);
-            logger.addAppender(fileAppender);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return logger;
     }
 
     private static ArrayList<Field> loadClassKeys(Scanner scanner) {
@@ -165,29 +153,4 @@ public class Fndds2ParseDataLoader {
         }
     }
 
-    private static class WaitRunnable implements Runnable {
-
-        public static final int WAIT_TIME_MS = 60000;
-        public static final int ONE_SECOND = 1000;
-        private Logger logger;
-
-        private WaitRunnable(Logger logger) {
-            this.logger = logger;
-        }
-
-        @Override
-        public void run() {
-            long waitMs = WAIT_TIME_MS;
-            synchronized (this) {
-                while (waitMs > ONE_SECOND) {
-                    try {
-                        logger.info("Waiting " + waitMs / ONE_SECOND + " seconds...");
-                        wait(waitMs /= 2L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
 }

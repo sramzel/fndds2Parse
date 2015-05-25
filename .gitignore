@@ -27,3 +27,4 @@ hs_err_pid*
 .idea
 src/main/java/PrivateKeys.java
 file.log
+gradle
