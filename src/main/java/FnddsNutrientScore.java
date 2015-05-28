@@ -12,10 +12,10 @@ import java.util.Set;
 /**
  * Created by stevenramzel on 5/24/15.
  */
-public class FnddsScore {
+public class FnddsNutrientScore {
     public static void main(String[] args) {
-        final Logger logger = Utils.initLogger();
-        final HashMap<Integer, Double> scoreMap = new HashMap<>();
+        Logger logger = Utils.initLogger();
+        HashMap<Integer, Double> scoreMap = new HashMap<>();
         Parse.initialize(PrivateKeys.APPLICATION_ID, PrivateKeys.REST_API_KEY);
         logger.info("Parse Initialized");
 
@@ -23,53 +23,54 @@ public class FnddsScore {
             List<ParseObject> dailyValues = ParseQuery.getQuery("DailyValue").find();
             for (int n = 0; n < dailyValues.size(); n++) {
                 ParseObject dailyValue = dailyValues.get(n);
-                final ParseQuery<ParseObject> query = ParseQuery.getQuery("NutrientValues");
+                ParseQuery<ParseObject> query = ParseQuery.getQuery("NutrientValues");
                 query.whereEqualTo("nutrientCode", dailyValue.get("nutrientCode"));
-                final double nutrientScore = dailyValue.getDouble("score");
-                final double dv = dailyValue.getDouble("nutrientValue");
 
                 logger.info("\nScoring " + n * 100 / dailyValues.size() + "%");
-                final int count = query.count();
+                int count = query.count();
                 for (int skip = 0; skip < count; skip += 100) {
-                    final int finalSkip = skip;
-                    new ParseRunnable(logger, new ParseRunnable.FlakyParseRunnable() {
-                        public void run() throws ParseException {
-                            query.skip(finalSkip);
+                    boolean shouldRetry = true;
+                    while (shouldRetry) {
+                        shouldRetry = false;
+                        try {
+                            query.skip(skip);
                             List<ParseObject> find = query.find();
-                            System.out.print(finalSkip * 100 / count + "%,");
+                            System.out.print(skip * 100 / count + "%,");
                             for (int i = 0; i < find.size(); i++) {
                                 ParseObject parseObject = find.get(i);
-                                Integer foodCode = (Integer) parseObject.get("foodCode");
-                                Double score = scoreMap.get(foodCode);
-                                double nutrientDv = parseObject.getDouble("nutrientValue") / dv / nutrientScore;
-                                scoreMap.put(foodCode, score == null ? nutrientDv : score + nutrientDv);
+                                Integer nutrientCode = (Integer) parseObject.get("nutrientCode");
+                                Double score = scoreMap.get(nutrientCode);
+                                double nutrientDv = parseObject.getDouble("nutrientValue") / dailyValue.getDouble("nutrientValue");
+                                scoreMap.put(nutrientCode, score == null ? nutrientDv : score + nutrientDv);
                             }
+                        } catch (ParseException e) {
+                            new Utils.WaitRunnable(logger).run();
+                            shouldRetry = true;
                         }
-                    }).run();
+                    }
                 }
             }
 
-            System.out.println("\nWriting portion scores");
+            System.out.println("\nWriting nutrient weights");
             ParseBatch batch;
             Set<Integer> foodCodes = scoreMap.keySet();
-            Integer[] foodCodeArray = foodCodes.toArray(new Integer[foodCodes.size()]);
-            for (int i = 0; i < foodCodeArray.length; i++) {
-                Integer foodCode = foodCodeArray[i];
+            Integer[] nutrientCodeArray = foodCodes.toArray(new Integer[foodCodes.size()]);
+            for (int i = 0; i < nutrientCodeArray.length; i++) {
+                Integer nutrientCode = nutrientCodeArray[i];
                 boolean shouldRetry = true;
                 while (shouldRetry) {
                     shouldRetry = false;
                     try {
                         batch = new ParseBatch();
                         int batchSize = 0;
-                        System.out.println("\n" + i * 100 / foodCodeArray.length + "%,");
-                        ParseQuery<ParseObject> portionQuery = ParseQuery.getQuery("FoodWeights");
-                        portionQuery.whereEqualTo("foodCode", foodCode);
+                        System.out.println("\n" + i * 100 / nutrientCodeArray.length + "%,");
+                        ParseQuery<ParseObject> portionQuery = ParseQuery.getQuery("DailyValue");
+                        portionQuery.whereEqualTo("nutrientCode", nutrientCode);
                         List<ParseObject> find = portionQuery.find();
                         int size = find.size();
                         for (int n = 0; n < size; n++) {
                             ParseObject portion = find.get(n);
-                            Object portionWeight = portion.getDouble("portionWeight");
-                            Double score = scoreMap.get(foodCode) * (Double) portionWeight;
+                            Double score = scoreMap.get(nutrientCode);
                             portion.put("score", score);
                             batch.updateObject(portion);
                             if (++batchSize == 50) {
@@ -91,5 +92,4 @@ public class FnddsScore {
             e.printStackTrace();
         }
     }
-
 }
