@@ -1,3 +1,5 @@
+package ParseUploaders;
+
 import org.apache.log4j.Logger;
 import org.parse4j.Parse;
 import org.parse4j.ParseBatch;
@@ -9,6 +11,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import ParseRunners.WaitRunnable;
 
 /**
  * Created by stevenramzel on 4/27/15.
@@ -48,7 +52,7 @@ public class Fndds2ParseDataLoader {
                 } catch (ParseException e) {
                     logger.error(e);
                     if (e.getCode() == 155) {
-                        new Utils.WaitRunnable(logger).run();
+                        new WaitRunnable(logger).run();
                         shouldRetry = true;
                         loadingClassId--;
                     }

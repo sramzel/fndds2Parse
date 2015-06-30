@@ -25,6 +25,6 @@ gradle-app.setting
 hs_err_pid*
 
 .idea
-src/main/java/PrivateKeys.java
+src/main/java/ParseUploaders.PrivateKeys.java
 file.log
 gradle

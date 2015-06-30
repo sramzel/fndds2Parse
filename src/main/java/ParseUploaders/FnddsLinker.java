@@ -1,3 +1,5 @@
+package ParseUploaders;
+
 import org.apache.log4j.Logger;
 import org.parse4j.Parse;
 import org.parse4j.ParseBatch;
@@ -11,7 +13,7 @@ import java.util.List;
  * Created by stevenramzel on 5/24/15.
  */
 public class FnddsLinker {
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         final Logger logger = Utils.initLogger();
         Parse.initialize(PrivateKeys.APPLICATION_ID, PrivateKeys.REST_API_KEY);
         logger.info("Parse Initialized");
@@ -165,5 +167,5 @@ public class FnddsLinker {
         int batchSize;
         ParseBatch batch;
         boolean reverse;
-    }
+    }*/
 }
