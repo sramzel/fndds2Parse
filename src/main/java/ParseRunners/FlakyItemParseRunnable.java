@@ -9,5 +9,5 @@ import java.util.List;
  * Created by stevenramzel on 6/29/15.
  */
 public interface FlakyItemParseRunnable {
-    void run(ParseObject item) throws ParseException;
+    boolean run(ParseObject item) throws ParseException;
 }

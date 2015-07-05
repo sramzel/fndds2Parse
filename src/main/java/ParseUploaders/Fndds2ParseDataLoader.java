@@ -18,9 +18,6 @@ import ParseRunners.WaitRunnable;
  * Created by stevenramzel on 4/27/15.
  */
 public class Fndds2ParseDataLoader {
-
-    public static final String PATTERN = "%d{dd-MM-yyyy HH:mm:ss} %C %L %-5p:%m%n";
-    public static final String FILE_LOG = "file.log";
     public static final String[] CLASS_NAMES = new String[]{
             "MainFoodDesc",
             "AddFoodDesc",

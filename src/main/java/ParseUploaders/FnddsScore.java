@@ -91,16 +91,17 @@ public class FnddsScore {
             public void run(List<ParseObject> list) throws ParseException {
                 new BatchParseRunnable(logger, new FlakyItemParseRunnable() {
                     @Override
-                    public void run(ParseObject item) throws ParseException {
+                    public boolean run(ParseObject item) throws ParseException {
                         final Long foodCode = item.getLong("foodCode");
                         Double variance = 0d;
                         Double totalScore = 0d;
                         Double cals = calMap.get(foodCode);
                         for (ParseObject dv : dvMap.values()) {
-                            final HashMap<Long, Double> nutrientCode = scores.get(dv.getLong("nutrientCode"));
-                            Double score = cals > 0d ? nutrientCode.get(foodCode) / cals : 0d;
+                            final HashMap<Long, Double> nutrient = scores.get(dv.getLong("nutrientCode"));
+                            final double score = cals > 0d ? nutrient.get(foodCode) / cals : 0d;
+                            nutrient.put(foodCode, score);
                             totalScore += score;
-                            variance += Math.sqrt(Math.abs(score * score - 1d));
+                            variance += Math.abs(score * score - 1d);
                         }
                         for (ParseObject dv : dvMap.values()) {
                             Long nutrientCode = dv.getLong("nutrientCode");
@@ -108,7 +109,8 @@ public class FnddsScore {
                         }
 
                         item.put("dv", totalScore);
-                        item.put("score", variance > 0d ? totalScore/variance : 0d);
+                        item.put("score", variance > 0d ? totalScore * totalScore * dailyValues.size()/variance : 0d);
+                        return true;
                     }
                 }).run(list);
             }

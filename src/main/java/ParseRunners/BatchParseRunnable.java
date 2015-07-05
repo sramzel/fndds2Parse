@@ -26,24 +26,25 @@ public class BatchParseRunnable implements FlakyListParseRunnable{
         int batchSize = 0;
         for (int i = 0; i < list.size(); i++) {
             final ParseObject item = list.get(i);
-            new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
-                public Void run() throws ParseException {
-                    parseRunnable.run(item);
-                    return null;
+            final Boolean changed = new ParseRunnable<>(logger, new FlakyParseRunnable<Boolean>() {
+                public Boolean run() throws ParseException {
+                    return parseRunnable.run(item);
                 }
             }).run();
-            batch.updateObject(item);
-            batchSize++;
-            if (batchSize == 50) {
-                final ParseBatch finalBatch = batch;
-                new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
-                    public Void run() throws ParseException {
-                        finalBatch.batch();
-                        return null;
-                    }
-                }).run();
-                batch = new ParseBatch();
-                batchSize = 0;
+            if (changed) {
+                batch.updateObject(item);
+                batchSize++;
+                if (batchSize == 50) {
+                    final ParseBatch finalBatch = batch;
+                    new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
+                        public Void run() throws ParseException {
+                            finalBatch.batch();
+                            return null;
+                        }
+                    }).run();
+                    batch = new ParseBatch();
+                    batchSize = 0;
+                }
             }
         }
     }

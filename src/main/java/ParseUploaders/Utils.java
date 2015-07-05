@@ -15,14 +15,17 @@ import ParseUploaders.Fndds2ParseDataLoader;
  * Created by stevenramzel on 5/24/15.
  */
 public class Utils {
+    public static final String PATTERN = "%d{dd-MM-yyyy HH:mm:ss} %C %L %-5p:%m%n";
+    public static final String FILE_LOG = "file.log";
+
     static Logger initLogger() {
         Logger logger = Logger.getLogger(Fndds2ParseDataLoader.class.getSimpleName());
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
         FileAppender fileAppender;
         try {
-            PatternLayout layout = new PatternLayout(Fndds2ParseDataLoader.PATTERN);
-            fileAppender = new RollingFileAppender(layout, Fndds2ParseDataLoader.FILE_LOG);
+            PatternLayout layout = new PatternLayout(PATTERN);
+            fileAppender = new RollingFileAppender(layout, FILE_LOG);
             logger.addAppender(fileAppender);
         } catch (IOException e) {
             e.printStackTrace();

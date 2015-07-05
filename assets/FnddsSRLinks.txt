@@ -1,3 +1,4 @@
+foodCode:integer^startDate:date^endDate:date^seqNum:integer^srFoodCode:integer^srDescription:string^amount:fraction^measure:string^portionCode:integer^retentionCode:integer^flag:integer^weight:fraction^srCodeChange:string^srWeightChange:string^retnCodeChange:string
 11000000^01/01/2003^12/31/2004^1^1107^~MILK,HUMAN,MATURE~^100^~GM~^0^0^0^100^^^^
 11100000^01/01/2003^12/31/2004^1^1077^~MILK,FLUID,3.25% MILKFAT~^36.9^~GM~^0^0^0^36.9^^~F~^^
 11100000^01/01/2003^12/31/2004^2^1079^~MILK,RED FAT,FLUID,2% MILKFAT,W/ VIT A~^34.1^~GM~^0^0^0^34.1^^~F~^^

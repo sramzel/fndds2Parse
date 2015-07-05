@@ -54,7 +54,7 @@ public class FnddsRescore {
                     totalScore += score;
                 }
 
-                foodDesc.put("dv", (int) (totalScore*100d));
+                foodDesc.put("dv", totalScore);
                 batch[0].updateObject(foodDesc);
                 batchSize[0]++;
 
