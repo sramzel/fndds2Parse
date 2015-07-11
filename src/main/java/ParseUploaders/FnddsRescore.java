@@ -9,8 +9,8 @@ import org.parse4j.ParseQuery;
 
 import java.util.List;
 
-import ParseRunners.FlakyParseRunnable;
 import ParseRunners.ParseRunnable;
+import ParseRunners.ParseRunner;
 
 /**
  * Created by stevenramzel on 5/24/15.
@@ -27,21 +27,17 @@ public class FnddsRescore {
         final List[] dailyValues = new List[1];
         final int[] foodCount = new int[1];
 
-        new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
-            public Void run() throws ParseException {
-                dailyValues[0] = ParseQuery.getQuery("DailyValue").find();
-                foodCount[0] = mainFoodDescQuery.count();
-                return null;
-            }
+        new ParseRunner<>(logger, () -> {
+            dailyValues[0] = ParseQuery.getQuery("DailyValue").find();
+            foodCount[0] = mainFoodDescQuery.count();
+            return null;
         }).run();
         for (int foodSkip = 0; foodSkip < foodCount[0]; ) {
             mainFoodDescQuery.skip(foodSkip);
             final List[] foodDescs = new List[1];
-            new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
-                public Void run() throws ParseException {
-                    foodDescs[0] = mainFoodDescQuery.find();
-                    return null;
-                }
+            new ParseRunner<>(logger, () -> {
+                foodDescs[0] = mainFoodDescQuery.find();
+                return null;
             }).run();
             for (int foodId = 0; foodId < foodDescs[0].size(); foodId++) {
                 logger.info((foodSkip + foodId) + "/" + foodCount[0]);
@@ -59,11 +55,9 @@ public class FnddsRescore {
                 batchSize[0]++;
 
                 if (batchSize[0] == 50) {
-                    new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
-                        public Void run() throws ParseException {
-                            batch[0].batch();
-                            return null;
-                        }
+                    new ParseRunner<>(logger, () -> {
+                        batch[0].batch();
+                        return null;
                     }).run();
                     batch[0] = new ParseBatch();
                     batchSize[0] = 0;
@@ -71,11 +65,9 @@ public class FnddsRescore {
             }
             foodSkip += foodDescs[0].size();
         }
-        new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
-            public Void run() throws ParseException {
-                batch[0].batch();
-                return null;
-            }
+        new ParseRunner<>(logger, () -> {
+            batch[0].batch();
+            return null;
         }).run();
     }
 }

@@ -10,12 +10,12 @@ import java.util.List;
 /**
  * Created by stevenramzel on 6/29/15.
  */
-public class BatchParseRunnable implements FlakyListParseRunnable{
+public class BatchRunner implements ParseRunnable.ListRunnable {
 
     private final Logger logger;
-    private final FlakyItemParseRunnable parseRunnable;
+    private final ParseRunnable.ItemRunnable parseRunnable;
 
-    public BatchParseRunnable(Logger logger, FlakyItemParseRunnable parseRunnable) {
+    public BatchRunner(Logger logger, ParseRunnable.ItemRunnable parseRunnable) {
         this.logger = logger;
         this.parseRunnable = parseRunnable;
     }
@@ -26,21 +26,15 @@ public class BatchParseRunnable implements FlakyListParseRunnable{
         int batchSize = 0;
         for (int i = 0; i < list.size(); i++) {
             final ParseObject item = list.get(i);
-            final Boolean changed = new ParseRunnable<>(logger, new FlakyParseRunnable<Boolean>() {
-                public Boolean run() throws ParseException {
-                    return parseRunnable.run(item);
-                }
-            }).run();
+            final Boolean changed = new ParseRunner<>(logger, () -> parseRunnable.run(item)).run();
             if (changed) {
                 batch.updateObject(item);
                 batchSize++;
                 if (batchSize == 50) {
                     final ParseBatch finalBatch = batch;
-                    new ParseRunnable<>(logger, new FlakyParseRunnable<Void>() {
-                        public Void run() throws ParseException {
-                            finalBatch.batch();
-                            return null;
-                        }
+                    new ParseRunner<>(logger, () -> {
+                        finalBatch.batch();
+                        return null;
                     }).run();
                     batch = new ParseBatch();
                     batchSize = 0;

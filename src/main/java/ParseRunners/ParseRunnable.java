@@ -1,33 +1,19 @@
 package ParseRunners;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.parse4j.ParseException;
-
-import ParseRunners.FlakyParseRunnable;
-import ParseRunners.WaitRunnable;
+import org.parse4j.ParseObject;
 
 /**
- * Created by stevenramzel on 5/26/15.
+ * Created by stevenramzel on 6/29/15.
  */
-public class ParseRunnable<T> {
+public interface ParseRunnable<T> {
+    T run() throws ParseException;
 
-    private final Logger logger;
-    private FlakyParseRunnable<T> flakyParseRunnable;
-
-    public ParseRunnable(Logger logger, FlakyParseRunnable<T> flakyParseRunnable) {
-        this.logger = logger;
-        this.flakyParseRunnable = flakyParseRunnable;
+    interface ListRunnable {
+        void run(java.util.List<ParseObject> list) throws ParseException;
     }
 
-    public T run() {
-        while (true) {
-            try {
-                return flakyParseRunnable.run();
-            } catch (ParseException e) {
-                logger.log(Level.INFO, e);
-                new WaitRunnable(logger).run();
-            }
-        }
+    interface ItemRunnable {
+        boolean run(ParseObject item) throws ParseException;
     }
 }
